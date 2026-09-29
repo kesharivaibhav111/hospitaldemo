@@ -1,0 +1,40 @@
+name: Build Windows Application (.exe)
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Build Windows Executable
+        run: flutter build windows --release
+
+      - name: Archive Windows Release
+        shell: pwsh
+        run: |
+          Compress-Archive -Path build/windows/x64/runner/Release/* -DestinationPath hospitaldemo-windows-x64.zip
+
+      - name: Upload Windows .exe Package
+        uses: actions/upload-artifact@v4
+        with:
+          name: hospitaldemo-windows-x64
+          path: hospitaldemo-windows-x64.zip
+          retention-days: 14
